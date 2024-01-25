@@ -14,13 +14,15 @@ import networkx as nx
 app = Bottle()
 
 # Strona Główna
+
+@view('index_old2.tpl')
 @app.route('/')
 @app.route('/main')
 @app.route('/main/')
 def glowna():
 
     # Wczytujemy pakiet danych do wizualizacji sieciowej
-    df_edges = pd.read_csv("df_edges.csv")
+    df_edges = pd.read_csv("data/df_edges.csv")
     df_edges = df_edges[pd.notna(df_edges["Instytucja_shorter"])]
 
     # Inicujemy graf
@@ -104,7 +106,9 @@ def glowna():
     return template('index_old2')
 
 # Informacje o projekcie
+
 @app.route('/oProjekcie')
+@view('o_projekcie.tpl')
 def oProjekcie():
     return template('o_projekcie')
 
@@ -113,7 +117,7 @@ def oProjekcie():
 @app.route('/KobietyDekady')
 def index():
     # Wczytujemy dane
-    data = pd.read_csv("data_updcated.csv")
+    data = pd.read_csv("data/data_updcated.csv")
 
     # Tworzymy wykresy skrzypcowe dla płci
     fig1 = go.Figure()
@@ -142,7 +146,7 @@ def index():
     plot_html1 = fig1.to_html(full_html = False)
 
     # Wczytujemy drugi zbiór danych
-    aggs_wide = pd.read_csv("data_aggregated.csv")
+    aggs_wide = pd.read_csv("data/data_aggregated.csv")
 
     # Sortujemy dane (zbieramy indeksy), żeby narysować wykresy słupkowe według wartości na osi OX
     # Citation_ratio
@@ -202,7 +206,7 @@ def index():
     plot_html2 = fig2.to_html(full_html=False)
 
     # Wczytujemy dane
-    aggs_total = pd.read_csv("aggs_total.csv")
+    aggs_total = pd.read_csv("data/aggs_total.csv")
 
     # Rysujemy dwa scatter ploty
     fig3 = px.scatter(aggs_total, x="H_index_ratio", y="H_index",
@@ -222,15 +226,16 @@ def index():
     # Zwracamy stronę + skonwertowane pliki HTML
     return template('KobietyDekady', plot_html1 = plot_html1,  plot_html2 = plot_html2, plot_html3 = plot_html3, plot_html4 = plot_html4)
 
-# # Route for serving static files (CSS in this case)
-# @app.route('/static/<filename:path>')
-# def serve_static(filename):
-#     return static_file(filename, root = './static')
+# Route for serving static files (CSS in this case)
+@app.route('/static/<filename:path>')
+def serve_static(filename):
+    return static_file(filename, root = './static')
 
 # Sekcja dotycząca eksportu danych - o ekonomsitach
+@view('tabela.tpl')
 @app.route('/tabela')
 def tabela():
-    data_all = pd.read_csv("Polish_all_economists_24_01.csv")
+    data_all = pd.read_csv("data/Polish_all_economists_24_01.csv")
     data_all = data_all.drop(data_all.columns[0], axis = 1)
 
 # Korzystamy z tabeli z plotly dla poprawienia estetyki
@@ -247,8 +252,6 @@ def tabela():
                     align='left'),
         cells=dict(values = [data_all['Autor'],
                                 data_all['ID'],
-                                data_all['Rank'],
-                                data_all['W.Rank'],
                                 data_all['Instytucja'],
                                 data_all['Płeć'],
                                 data_all['H_index'],
@@ -269,13 +272,14 @@ def tabela():
 @app.route('/tabela/download/')
 @app.route('/tabela/download')
 def download():
-    return static_file(filename = "Polish_all_economists_24_01.csv", root = "",download = "Polish_all_economists_24_01.csv")
+    return static_file(filename = "data/Polish_all_economists_24_01.csv", root = "",download = "data/Polish_all_economists_24_01.csv")
 
 # Tabela z instytucjami
+@view('instytucje.tpl')
 @app.route('/instytucje')
 @app.route('/instytucje/')
 def instytucje():
-    data_inst = pd.read_csv("Leading_institutions.csv")
+    data_inst = pd.read_csv("data/Leading_institutions.csv")
     data_inst = data_inst.drop(data_inst.columns[0], axis=1)
     tabela_instytucje = go.Figure(data=[go.Table(
         header=dict(values=['Nazwa instytucji',
@@ -307,13 +311,14 @@ def instytucje():
 @app.route('/instytucje/download/')
 @app.route('/instytucje/download')
 def download():
-    return static_file(filename="Leading_institutions.csv", root="",download="Leading_institutions.csv")
+    return static_file(filename="data/Leading_institutions.csv", root="",download="data/Leading_institutions.csv")
 
 # Wizualizacja różnic w strategiach
+@view('Strategie.tpl')
 @app.route('/Strategie')
 def Strategie():
     # Wczytanie danych
-    data = pd.read_csv("data_updcated.csv")
+    data = pd.read_csv("data/data_updcated.csv")
     zbior = data[["Artykuły", "Książki", "decade"]]
     zbior.Książki[np.isnan(zbior.Książki)] = 0
     colors = ['#543345', '#724354', '#a0606e', '#dd8a95', '#e2b3ab']
@@ -917,6 +922,3 @@ def download():
 
 if __name__ == '__main__':
     run(app, host='localhost', port = 8080, debug = True)
-
-
-
