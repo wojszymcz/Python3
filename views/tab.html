@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tab Content</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-1.58.4.js"></script>
+    <style>
+        body {
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 128, 1));
+            color: #ffffff; /* Set text color to white for better visibility */
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Tab Content</h2>
+        <div>
+            <div id="plotly-graph"></div>
+        </div>
+        <div class="mt-4">
+            <p>Choose variable to plot:</p>
+            <a href="#" class="btn btn-light" onclick="updatePlot('H_index')">H Index</a>
+            <a href="#" class="btn btn-light" onclick="updatePlot('Cytowania')">Cytowania</a>
+            <a href="#" class="btn btn-light" onclick="updatePlot('Auto_cytowania')">Auto Cytowania</a>
+
+            <!-- Hidden input to store initialYVariable -->
+            <input type="hidden" id="initialYVariable" value="{{ initialYVariable }}">
+        </div>
+    </div>
+
+    <script>
+    // Function to update the Plotly graph
+    function updatePlot(yVariable) {
+        // Get the initialYVariable from the hidden input
+        var initialYVariable = document.getElementById('initialYVariable').value;
+
+        // Make an AJAX request to the Flask server
+        fetch(`/update_plot/${yVariable}`)
+            .then(response => response.json())
+            .then(data => {
+                // Update the Plotly graph with the received data
+                Plotly.newPlot('plotly-graph', [{
+                    type: 'violin',
+                    x: data.xData,
+                    y: data.yData,
+                    box: {
+                        visible: true
+                    },
+                    line: {
+                        color: 'white'
+                    },
+                    marker: {
+                        line: {
+                            color: 'white',
+                            width: 2
+                        }
+                    },
+                    points: 'all',
+                    jitter: 0.3,
+                    pointpos: -1.8,
+                    pointwidth: 0.6,
+                    hoveron: 'violins+points',
+                    hoverinfo: 'all',
+                    hoverlabel: {
+                        namelength: -1
+                    },
+                    title: `Violin Plot for Tab 1 - ${yVariable}`,
+                    transforms: [{
+                        type: 'groupby',
+                        groups: data.colorData,
+                        styles: data.colorData.map(color => ({
+                            target: color,
+                            value: {line: {color: 'white'}}
+                        }))
+                    }]
+                }], {
+                    plot_bgcolor: 'rgba(0, 0, 0, 1)',  // Black
+                    paper_bgcolor: 'rgba(0, 0, 128, 1)',  // Navy
+                    font: {
+                        color: 'white'
+                    }
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Initial plot on page load
+    var initialYVariable = "{{ initialYVariable }}";
+    updatePlot(initialYVariable);
+</script>
+</body>
+</html>
