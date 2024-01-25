@@ -201,11 +201,18 @@
     // Pobierz wybraną wartość z listy rozwijanej
     var wybranaPostac = document.getElementById("postacie").value;
 
+    // Sprawdź, czy istnieje poprzedni link, i usuń go, jeśli istnieje
+    var poprzedniLink = document.getElementById("raportLink");
+    if (poprzedniLink) {
+        poprzedniLink.remove();
+    }
+
     var a = document.createElement('a');
     var linkText = document.createTextNode("Pobierz raport");
     a.appendChild(linkText);
     a.title = "Pobierz raport";
     a.href = "/reports/" + wybranaPostac;
+    a.id = "raportLink";  // Nadaj unikalne ID, aby móc łatwo odnaleźć link później
     document.body.appendChild(a);
   }
 
